@@ -16,14 +16,26 @@ public class EstadoDTO {
 
     private List<Municipio> municipios;
 
-    public EstadoDTO(String nome_estado, String sigla, List<Municipio> municipios) {
+    @SerializedName("ibgeid")
+    private Long idIbge;
+
+    public EstadoDTO(String nome_estado, String sigla, List<Municipio> municipios, Long idIbge) {
         this.nome_estado = nome_estado;
         this.sigla = sigla;
         this.municipios = municipios;
+        this.idIbge = idIbge;
     }
 
     public EstadoDTO(){
 
+    }
+
+    public Long getIdIbge() {
+        return idIbge;
+    }
+
+    public void setIdIbge(Long idIbge) {
+        this.idIbge = idIbge;
     }
 
     public void addMunicipio(Municipio municipio){
