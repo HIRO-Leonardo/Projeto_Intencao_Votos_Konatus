@@ -2,6 +2,7 @@ package Projeto_Votos.main.controller;
 
 import Projeto_Votos.main.dtos.ResultadoCandidatoDTO;
 import Projeto_Votos.main.service.PesquisaService;
+import Projeto_Votos.main.service.VirusScannerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,10 +13,11 @@ import java.util.List;
 @RequestMapping("/api/pesquisas")
 public class PesquisaController {
     private final PesquisaService pesquisaService;
+    private final VirusScannerService virusScannerService;
 
-
-    public PesquisaController(PesquisaService pesquisaService) {
+    public PesquisaController(PesquisaService pesquisaService, VirusScannerService virusScannerService) {
         this.pesquisaService = pesquisaService;
+        this.virusScannerService = virusScannerService;
     }
 
     @PostMapping("/upload-csv")
@@ -31,7 +33,7 @@ public class PesquisaController {
         }
 
         try {
-            pesquisaService.processarCsv(arquivo);
+            virusScannerService.estaInfectado(arquivo);
             return ResponseEntity.ok("Arquivo processado com sucesso!");
 
         } catch (IllegalArgumentException e) {

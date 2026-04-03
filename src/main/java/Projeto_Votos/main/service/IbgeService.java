@@ -4,11 +4,11 @@ import Projeto_Votos.main.dtos.EstadoDTO;
 import Projeto_Votos.main.dtos.MunicipioDTO;
 import Projeto_Votos.main.entity.Estado;
 import Projeto_Votos.main.entity.Municipio;
-import Projeto_Votos.main.entity.RegraGruposPopulacao;
 import Projeto_Votos.main.repository.EstadoRepository;
 import Projeto_Votos.main.repository.MunicipioRepository;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.stereotype.Service;
 
 
@@ -17,6 +17,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -39,13 +40,14 @@ public class IbgeService {
         this.httpClient = HttpClient.newHttpClient();
         this.gson = new Gson();
     }
-
-    public void sincronizar(){
+    @CircuitBreaker(name = "DadosIBGE", fallbackMethod = "ProcessarDadosIBGEFallback")
+    public List<Estado> sincronizar(){
         System.out.println("Iniciando sincronização com o IBGE!!!");
 
         try {
             HttpRequest requestEstados = HttpRequest.newBuilder()
                     .uri(URI.create("https://servicodados.ibge.gov.br/api/v1/localidades/estados"))
+                    .timeout(Duration.ofSeconds(120))
                     .GET()
                     .build();
             HttpResponse<String> responseEstados = httpClient.send(requestEstados, HttpResponse.BodyHandlers.ofString());
@@ -63,12 +65,14 @@ public class IbgeService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return null;
     }
-
+    @CircuitBreaker(name = "DadosIBGE", fallbackMethod = "ProcessarDadosIBGEFallback")
     public void sincronizarMunicipiosEstado(Estado estado){
         try{
             HttpRequest requestMunicipios = HttpRequest.newBuilder()
                     .uri(URI.create("https://servicodados.ibge.gov.br/api/v1/localidades/estados/" + estado.getSigla() + "/municipios"))
+                    .timeout(Duration.ofSeconds(120))
                     .GET().build();
 
             HttpResponse<String> response = httpClient.send(requestMunicipios, HttpResponse.BodyHandlers.ofString());

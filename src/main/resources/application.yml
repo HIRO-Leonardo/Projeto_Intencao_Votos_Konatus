@@ -1,0 +1,15 @@
+resilience4j:
+  timelimiter:
+    instances:
+      DadosIBGE:
+        timeout-duration:
+          seconds: 3
+  circuitbreaker:
+    instances:
+      DadosIBGE:
+        register-health-indicator: true
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state:
+          seconds: 10
+        permitted-number-of-calls-in-half-open-state: 3

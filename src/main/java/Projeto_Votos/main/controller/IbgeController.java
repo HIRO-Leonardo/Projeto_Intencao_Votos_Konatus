@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class IbgeController {
     private final IbgeService ibgeService;
 
-
     public IbgeController(IbgeService ibgeService) {
         this.ibgeService = ibgeService;
     }
