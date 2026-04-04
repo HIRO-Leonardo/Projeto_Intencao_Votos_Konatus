@@ -4,6 +4,7 @@ package Projeto_Votos.main.service;
 import Projeto_Votos.main.dtos.MunicipioDTO;
 import Projeto_Votos.main.entity.Estado;
 import Projeto_Votos.main.entity.Municipio;
+import Projeto_Votos.main.exceptions.ExceptionHandlerSistema;
 import Projeto_Votos.main.repository.EstadoRepository;
 import Projeto_Votos.main.repository.MunicipioRepository;
 
@@ -37,35 +38,40 @@ public class IbgeService {
     @Transactional
     @CircuitBreaker(name = "DadosIBGE", fallbackMethod = "ProcessarDadosIBGEFallback")
     public List<Estado> sincronizar(){
-
-
-        try {
             List<Estado> estados = restClient.get()
                     .uri("/localidades/estados")
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, ((request, response) ->{
-                        throw new RuntimeException("Erro API do IBGE:" + response.getStatusCode());
+                        throw new ExceptionHandlerSistema("Erro API do IBGE: " + response.getStatusCode());
 
                     }))
                     .body(new ParameterizedTypeReference<List<Estado>>() {}
                     );
-
-            if (estados != null && !estados.isEmpty()){
-                List<Estado> estadoSalvos = estadoRepository.saveAllAndFlush(estados);
-
-                sincronizarMunicipiosEstado(estadoSalvos);
-                atualizarPopulacaoCidades(estadoSalvos);
-                return estadoSalvos;
+            if (estados == null || estados.isEmpty()){
+                throw new ExceptionHandlerSistema("A lista de estados não pode estar vazia!");
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
 
+            List<Estado> estadoSalvos = estadoRepository.saveAllAndFlush(estados);
+            sincronizarMunicipiosEstado(estadoSalvos);
+            atualizarPopulacaoCidades(estadoSalvos);
+            return estadoSalvos;
+    }
+    public List<Estado> ProcessarDadosIBGEFallback(Exception e) {
+        System.err.println("Circuit Breaker Ativado! Motivo: " + e.getMessage());
+
+        // Aqui, em vez de dar erro 500, você pode retornar o que já tem no banco
+        // para o sistema não parar totalmente.
+        List<Estado> estadosNoBanco = estadoRepository.findAll();
+
+        if (estadosNoBanco.isEmpty()) {
+            throw new ExceptionHandlerSistema("IBGE fora do ar e banco de dados vazio.");
         }
-        return Collections.emptyList();
+
+        return estadosNoBanco;
     }
 
     public void sincronizarMunicipiosEstado(List<Estado> estados) {
-        Random random = new Random();
+
         for (Estado estado1 : estados) {
             try {
 
