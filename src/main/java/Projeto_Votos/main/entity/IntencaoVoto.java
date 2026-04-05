@@ -25,11 +25,14 @@ public class IntencaoVoto {
     private Integer votosBrutos; // Os votos originais da planilha
 
     @Column(name = "votos_ponderados")
-    private Double votosPonderados; // O resultado do nosso cálculo
+    private Long votosPonderados; // O resultado do nosso cálculo
 
     @Column(name = "nome_candidato")
     private String nome_candidato;
 
+    private Long resultadoPonderado;
+
+    private Double participacaoNaCidade;
 
     @ManyToOne
     @JoinColumn(name = "municipio_id")
@@ -39,12 +42,16 @@ public class IntencaoVoto {
     public IntencaoVoto() {}
 
     // Construtor completo atualizado
-    public IntencaoVoto(String idPesquisa, LocalDate dataPesquisa, Integer idCandidato, Integer votosBrutos, Double votosPonderados, Municipio municipio, String nome_candidato) {
+    public IntencaoVoto(String idPesquisa, LocalDate dataPesquisa, Integer idCandidato,
+                        Integer votosBrutos, Long votosPonderados,
+                        Double percentualParticipacao, Municipio municipio,
+                        String nome_candidato) {
         this.idPesquisa = idPesquisa;
         this.dataPesquisa = dataPesquisa;
         this.idCandidato = idCandidato;
         this.votosBrutos = votosBrutos;
         this.votosPonderados = votosPonderados;
+        this.participacaoNaCidade = percentualParticipacao; // Adicionado aqui
         this.municipio = municipio;
         this.nome_candidato = nome_candidato;
     }
@@ -57,7 +64,21 @@ public class IntencaoVoto {
         this.id = id;
     }
 
+    public Long getResultadoPonderado() {
+        return resultadoPonderado;
+    }
 
+    public void setResultadoPonderado(Long resultadoPonderado) {
+        this.resultadoPonderado = resultadoPonderado;
+    }
+
+    public Double getParticipacaoNaCidade() {
+        return participacaoNaCidade;
+    }
+
+    public void setParticipacaoNaCidade(Double participacaoNaCidade) {
+        this.participacaoNaCidade = participacaoNaCidade;
+    }
 
     public Integer getVotosBrutos() {
         return votosBrutos;
@@ -77,11 +98,11 @@ public class IntencaoVoto {
 
 
 
-    public Double getVotosPonderados() {
+    public Long getVotosPonderados() {
         return votosPonderados;
     }
 
-    public void setVotosPonderados(Double votosPonderados) {
+    public void setVotosPonderados(Long votosPonderados) {
         this.votosPonderados = votosPonderados;
     }
 

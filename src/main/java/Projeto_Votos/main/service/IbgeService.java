@@ -93,7 +93,15 @@ public class IbgeService {
                     for (MunicipioDTO dto : municipioDTOS) {
 
                         int populacaoReal = dadosPopulacao.getOrDefault(dto.getId(), 0);
-                        Municipio municipio = new Municipio(dto.getId(), dto.getNome(), populacaoReal, estado1);
+
+                        //, , , ,
+                        Municipio municipio = new Municipio();
+                        municipio.setId(dto.getId());
+                        municipio.setNome_cidade(dto.getNome());
+                        municipio.setPopulacao(populacaoReal);
+                        municipio.setEstado(estado1);
+                        municipio.setGrupoMunicipio(municipio.calcularGrupoPelaPopulacao(populacaoReal));
+                        System.out.println(municipio.getGrupoMunicipio());
                         municipioList.add(municipio);
                     }
 

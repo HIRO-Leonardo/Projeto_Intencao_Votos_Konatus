@@ -5,12 +5,12 @@ import java.time.LocalDate;
 public class ResultadoCandidatoDTO {
     private String nomeCandidato;
     private Long totalVotosBrutos;
-    private Double totalVotosPonderados;
+    private Long totalVotosPonderados;
     private Integer idCandidato;
     private LocalDate dataPesquisa;
     private String idPesquisa;
 
-    public ResultadoCandidatoDTO(String nomeCandidato, Long totalVotosBrutos, Double totalVotosPonderados, Integer idCandidato, LocalDate dataPesquisa, String idPesquisa) {
+    public ResultadoCandidatoDTO(String nomeCandidato, Long totalVotosBrutos, Long totalVotosPonderados, Integer idCandidato, LocalDate dataPesquisa, String idPesquisa) {
         this.nomeCandidato = nomeCandidato;
         this.totalVotosBrutos = totalVotosBrutos;
         this.totalVotosPonderados = totalVotosPonderados;
@@ -37,11 +37,11 @@ public class ResultadoCandidatoDTO {
         this.totalVotosBrutos = totalVotosBrutos;
     }
 
-    public Double getTotalVotosPonderados() {
+    public Long getTotalVotosPonderados() {
         return totalVotosPonderados;
     }
 
-    public void setTotalVotosPonderados(Double totalVotosPonderados) {
+    public void setTotalVotosPonderados(Long totalVotosPonderados) {
         this.totalVotosPonderados = totalVotosPonderados;
     }
 

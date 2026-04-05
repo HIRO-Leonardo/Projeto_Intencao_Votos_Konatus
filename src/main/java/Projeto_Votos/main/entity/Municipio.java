@@ -1,7 +1,7 @@
 package Projeto_Votos.main.entity;
 
+import Projeto_Votos.main.enums.GrupoMunicipio;
 import jakarta.persistence.*;
-import projeto.votos.enums.GrupoMunicipio;
 @Entity
 @Table(name = "municipio")
 public class Municipio {
@@ -10,18 +10,30 @@ public class Municipio {
     private String nome_cidade;
     private Integer populacao;
 
+    @Enumerated(EnumType.STRING)
+    private GrupoMunicipio grupoMunicipio;
+
     @ManyToOne
     @JoinColumn(name = "estado_sigla")
     private Estado estado;
 
-    public Municipio(Long id, String nome_cidade, Integer populacao, Estado estado) {
+    public Municipio(Long id, String nome_cidade, Integer populacao, Estado estado, GrupoMunicipio grupoMunicipio) {
         this.id = id;
         this.nome_cidade = nome_cidade;
         this.populacao = populacao;
         this.estado = estado;
+        this.grupoMunicipio = grupoMunicipio;
     }
 
     public Municipio() {
+    }
+
+    public GrupoMunicipio getGrupoMunicipio() {
+        return grupoMunicipio;
+    }
+
+    public void setGrupoMunicipio(GrupoMunicipio grupoMunicipio) {
+        this.grupoMunicipio = grupoMunicipio;
     }
 
     public Long getId() {
@@ -56,12 +68,16 @@ public class Municipio {
         this.estado = estado;
     }
 
-    public GrupoMunicipio getGrupo(){
+    public GrupoMunicipio calcularGrupoPelaPopulacao(Integer populacao){
+        if (populacao == null || populacao == 0) {
+            return GrupoMunicipio.GRUPO_0;
+        }
         if (populacao <= RegraGruposPopulacao.LIMITE_GRUPO_1){return GrupoMunicipio.GRUPO_1;}
         if (populacao <= RegraGruposPopulacao.LIMITE_GRUPO_2){return GrupoMunicipio.GRUPO_2;}
         if (populacao <= RegraGruposPopulacao.LIMITE_GRUPO_3){return GrupoMunicipio.GRUPO_3;}
 
         return GrupoMunicipio.GRUPO_4;
     }
+
 
 }
