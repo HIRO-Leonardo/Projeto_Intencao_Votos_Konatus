@@ -1,6 +1,9 @@
 package Projeto_Votos.main.service;
 
 
+import Projeto_Votos.main.config.AgregadosClient;
+import Projeto_Votos.main.config.IgbeConfig;
+import Projeto_Votos.main.dtos.EstadoDTO;
 import Projeto_Votos.main.dtos.MunicipioDTO;
 import Projeto_Votos.main.entity.Estado;
 import Projeto_Votos.main.entity.Municipio;
@@ -11,6 +14,7 @@ import Projeto_Votos.main.repository.MunicipioRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -22,6 +26,11 @@ import java.util.*;
 
 @Service
 public class IbgeService {
+
+    @Autowired
+    IgbeConfig igbeConfig;
+
+    AgregadosClient agregadosClient;
 
     private final EstadoRepository estadoRepository;
 
@@ -38,23 +47,27 @@ public class IbgeService {
     @Transactional
     @CircuitBreaker(name = "DadosIBGE", fallbackMethod = "ProcessarDadosIBGEFallback")
     public List<Estado> sincronizar(){
-            List<Estado> estados = restClient.get()
-                    .uri("/localidades/estados")
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError, ((request, response) ->{
-                        throw new ExceptionHandlerSistema("Erro API do IBGE: " + response.getStatusCode());
-
-                    }))
-                    .body(new ParameterizedTypeReference<List<Estado>>() {}
-                    );
+            List<EstadoDTO> estados = igbeConfig.obterEstados();
             if (estados == null || estados.isEmpty()){
                 throw new ExceptionHandlerSistema("A lista de estados não pode estar vazia!");
             }
+            List<Estado> dtoForEntity = estados.stream()
+                    .map(dto -> {
+                        System.out.println(dto);
+                        return new Estado(dto);
+                    })
+                    .toList();
 
-            List<Estado> estadoSalvos = estadoRepository.saveAllAndFlush(estados);
-            sincronizarMunicipiosEstado(estadoSalvos);
-            atualizarPopulacaoCidades(estadoSalvos);
-            return estadoSalvos;
+
+            return salvarDadosSincronizados(dtoForEntity);
+    }
+
+    @Transactional
+    public List<Estado> salvarDadosSincronizados(List<Estado> dtoForEntity) {
+        List<Estado> estadoSalvos = estadoRepository.saveAllAndFlush(dtoForEntity);
+        sincronizarMunicipiosEstado(estadoSalvos);
+        //atualizarPopulacaoCidades(estadoSalvos);
+        return estadoSalvos;
     }
     public List<Estado> ProcessarDadosIBGEFallback(Exception e) {
         System.err.println("Circuit Breaker Ativado! Motivo: " + e.getMessage());
@@ -75,17 +88,8 @@ public class IbgeService {
         for (Estado estado1 : estados) {
             try {
 
-                List<MunicipioDTO> municipioDTOS = restClient.get()
-                        .uri("/localidades/estados/" + estado1.getSigla() + "/municipios")
-                        .retrieve()
-                        .onStatus(HttpStatusCode::isError, ((request, response) -> {
-                            throw new RuntimeException("Erro API do IBGE:" + response.getStatusCode());
-
-                        }))
-                        .body(new ParameterizedTypeReference<List<MunicipioDTO>>() {
-                              }
-                        );
-                Map<Long, Integer> dadosPopulacao = buscarPopulacaoRealDoEstado(estado1.getIdIbge());
+                List<MunicipioDTO> municipioDTOS = igbeConfig.obterMunicipioPorEstado(estado1.getSigla());
+                Map<Long, Integer> dadosPopulacao = buscarPopulacaoRealDoEstado(estado1.getId());
                 if (municipioDTOS != null && !municipioDTOS.isEmpty()) {
 
                     List<Municipio> municipioList = new ArrayList<>();
@@ -113,14 +117,13 @@ public class IbgeService {
         }
     }
     public void atualizarPopulacaoCidades(List<Estado> estados){
-        for (Estado estado: estados){
+        /*for (Estado estado: estados){
             try {
                 JsonNode response = restClient.get()
-                        .uri("https://servicodados.ibge.gov.br/api/v3/agregados/9514/periodos/2022/variaveis/93?localidades=N6[N3[" + estado.getIdIbge() + "]]")
+                        .uri("https://servicodados.ibge.gov.br/api/v3/agregados/9514/periodos/2022/variaveis/93?localidades=N6[N3[" + estado.getId() + "]]")
                         .retrieve()
                         .body(JsonNode.class);
                 JsonNode series = response.get(0).get("resultados").get(0).get("series");
-
                 for (JsonNode node: series){
                     Long ibgeId = node.get("localidade").get("id").asLong();
                     int populacaoReal = node.get("serie").get("2022").asInt();
@@ -129,9 +132,12 @@ public class IbgeService {
                 }
                 System.out.println("População real atualizada para o estado: " + estado.getSigla());
             }catch (Exception e){
-                System.err.println("Erro ao obter população de " + estado.getIdIbge() + ": " + e.getMessage());
+                System.err.println("Erro ao obter população de " + estado.getId() + ": " + e.getMessage());
             }
-        }
+        } */
+        //List<MunicipioDTO> listaMunicipios = agregadosClient.obterPopulacaoCidades(estado.getId());
+        //System.out.println(listaMunicipios);
+
     }
     private Map<Long, Integer> buscarPopulacaoRealDoEstado(Long estadoId) {
         try {

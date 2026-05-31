@@ -14,9 +14,6 @@ public class ApiIbgeConfig {
     public RestClient restClient(RestClient.Builder builder){
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory();
         factory.setReadTimeout(Duration.ofSeconds(120));
-
-
-
         return builder.baseUrl("https://servicodados.ibge.gov.br/api/v1").requestFactory(factory).build();
     }
 }

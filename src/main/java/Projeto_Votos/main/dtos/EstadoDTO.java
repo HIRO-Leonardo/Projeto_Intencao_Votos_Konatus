@@ -1,10 +1,6 @@
 package Projeto_Votos.main.dtos;
 
-import Projeto_Votos.main.entity.Municipio;
 import com.google.gson.annotations.SerializedName;
-import jakarta.persistence.Id;
-
-import java.util.List;
 
 public class EstadoDTO {
 
@@ -12,50 +8,36 @@ public class EstadoDTO {
     private String sigla;
 
     @SerializedName("nome")
-    private String nome_estado;
+    private String nome;
 
-    private List<Municipio> municipios;
+    private Long id;
 
-    @SerializedName("ibgeid")
-    private Long idIbge;
 
-    public EstadoDTO(String nome_estado, String sigla, List<Municipio> municipios, Long idIbge) {
-        this.nome_estado = nome_estado;
+
+    public EstadoDTO(String nome, String sigla, Long id) {
+        this.nome = nome;
         this.sigla = sigla;
-        this.municipios = municipios;
-        this.idIbge = idIbge;
+        this.id = id;
+
     }
 
     public EstadoDTO(){
-
     }
 
-    public Long getIdIbge() {
-        return idIbge;
+    public Long getId() {
+        return id;
     }
 
-    public void setIdIbge(Long idIbge) {
-        this.idIbge = idIbge;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public void addMunicipio(Municipio municipio){
-        this.municipios.add(municipio);
+    public String getNome() {
+        return nome;
     }
 
-    public Integer getPopulacao(){
-        Integer total = 0;
-        for (Municipio m: municipios){
-            total += m.getPopulacao();
-        }
-        return total;
-    }
-
-    public String getNome_estado() {
-        return nome_estado;
-    }
-
-    public void setNome_estado(String nome_estado) {
-        this.nome_estado = nome_estado;
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
     public String getSigla() {
@@ -66,11 +48,4 @@ public class EstadoDTO {
         this.sigla = sigla;
     }
 
-    public List<Municipio> getMunicipios() {
-        return municipios;
-    }
-
-    public void setMunicipios(List<Municipio> municipios) {
-        this.municipios = municipios;
-    }
 }

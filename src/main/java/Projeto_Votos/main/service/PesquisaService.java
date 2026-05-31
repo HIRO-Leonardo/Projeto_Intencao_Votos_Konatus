@@ -16,6 +16,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +46,9 @@ public class PesquisaService {
                     .trim();
             mapaCidades.put(chaveBanco, m);
         }
+        List<IntencaoVoto> bufferVotos = new ArrayList<>();
+        int contador = 0;
+        int tamanhoLote = 1000;
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(arquivo.getInputStream()))) {
             String linha;
@@ -73,10 +77,12 @@ public class PesquisaService {
                     throw new ExceptionHandlerSistema("Município " + nomeMun + " não mapeado para importação.");
                 }
 
+
                 double participacaoNaCidade = (qtdVotos.doubleValue() / cidade.getPopulacao()) * 100;
 
                 double resultadoPonderado = qtdVotos * participacaoNaCidade;
                 Long resultadoArredondado = Math.round(resultadoPonderado);
+
                 IntencaoVoto novoVoto = new IntencaoVoto(
                         idPesquisa,
                         data,
@@ -87,8 +93,21 @@ public class PesquisaService {
                         cidade,
                         nomeCandidato
                 );
+                bufferVotos.add(novoVoto);
+                contador++;
 
-                intencaoVotosRepository.saveAndFlush(novoVoto);
+                if (contador % tamanhoLote == 0){
+                    intencaoVotosRepository.saveAll(bufferVotos);
+                    intencaoVotosRepository.flush();
+                    bufferVotos.clear();
+                    System.out.println("Lote de " + contador + " registros processado...");
+
+                }
+            }
+            if (!bufferVotos.isEmpty()) {
+                intencaoVotosRepository.saveAll(bufferVotos);
+                intencaoVotosRepository.flush();
+                System.out.println("Salvando o restante: " + bufferVotos.size() + " registros.");
             }
         }
         System.out.println("--- Processamento e gravação concluídos com sucesso! ---");
